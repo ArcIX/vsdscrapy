@@ -2,7 +2,7 @@ from scrapy import Spider
 from scrapy.http import Request
 
 class WarrantSpider(Spider):
-    name = "Warrant"
+    name = "warrant"
     base_url = "https://vsd.vn"
     search_url = base_url + "/en/search?text="
 
@@ -19,7 +19,7 @@ class WarrantSpider(Spider):
         for symbol in self.symbols:
             yield Request(self.search_url + symbol, callback=self.get_detail_page_url, meta={'symbol': symbol})
         else:
-            raise ValueError("Symbols to search not provided using set_symbols")
+            raise AttributeError("Symbols to search not provided using set_symbols")
 
     def get_detail_page_url(self, response):
         """
@@ -27,7 +27,8 @@ class WarrantSpider(Spider):
         its details page
         """
         symbol = response.meta.get('symbol')
-        return response.xpath("//*[@id='divGlSearchIsuStocks']//li//b[text()='" + symbol + "']/../@href")
+        href = response.xpath("//div[@id='divGlSearchIsuStocks']//li//b[text()='" + symbol + "']/../@href").get()
+        yield self.base_url + href
 
     def start_requests(self):
         """
