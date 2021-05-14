@@ -19,10 +19,11 @@ class WarrantSpider(Spider):
         """
         On this page: https://vsd.vn/en/search?text=, make a request to search for each symbol
         """
-        self.set_symbols([
-            "CROS2001",
-            "CROS2002"
-        ])
+        # Sample symbols to scrape
+        # self.set_symbols([
+        #     "CROS2001",
+        #     "CROS2002"
+        # ])
         search_urls = [self.search_url + symbol for symbol in self.symbols]
         for index, url in enumerate(search_urls):
             yield Request(url, dont_filter=True, 
