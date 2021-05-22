@@ -83,5 +83,5 @@ class WarrantSpider(Spider):
             value = row.xpath("./div[2]/descendant-or-self::*[last()]/text()").get()
             warrantLoader.add_value(key, value)
         warrantItem.fields['Source URL'] = Field(output_processor=TakeFirst())
-        warrantLoader.add_value('source_url', response.request.url)
+        warrantLoader.add_value('Source URL', response.request.url)
         return warrantLoader.load_item()
