@@ -1,13 +1,13 @@
 from scrapy import Spider, Field
 from scrapy.http import Request
-from scrapy.loader import ItemLoader
-from ..items import WarrantItem
+from ..loaders import SecurityLoader
+from ..items import SecurityItem
 from scrapy.loader.processors import TakeFirst
 import os
 import csv
 
-class WarrantSpider(Spider):
-    name = "warrant"
+class SecuritySpider(Spider):
+    name = "security"
     base_url = "https://vsd.vn"
     search_url = base_url + "/en/search?text="
 
@@ -75,15 +75,14 @@ class WarrantSpider(Spider):
             //div[@id='Detail_TCPH_TTCK']/div[@class='news-issuers']/div[@class='row']
             """
         )[:-1]
-        warrantItem = WarrantItem()
-        warrantLoader = ItemLoader(item=warrantItem, response=response)
+        securityItem = SecurityItem()
+        securityLoader = SecurityLoader(item=securityItem)
         for row in rows:
             key = row.xpath("./div[1]/text()").get()
-            key = key.replace(":", "")
-            warrantItem.fields[key] = Field(output_processor=TakeFirst())
+            key = key.replace(":", "").replace("'", "").replace(" ", "_").lower()
+            securityItem.fields[key] = Field()
 
             value = row.xpath("./div[2]/descendant-or-self::*[last()]/text()").get()
-            warrantLoader.add_value(key, value)
-        warrantItem.fields['Source URL'] = Field(output_processor=TakeFirst())
-        warrantLoader.add_value('Source URL', response.request.url)
-        return warrantLoader.load_item()
+            securityLoader.add_value(key, value)
+        securityLoader.add_value('source_url', response.request.url)
+        return securityLoader.load_item()
