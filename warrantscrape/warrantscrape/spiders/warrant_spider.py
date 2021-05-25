@@ -1,7 +1,6 @@
-from scrapy import Spider, Field
+from scrapy import Spider
 from scrapy.http import Request
 from ..loaders import WarrantLoader
-from scrapy.loader.processors import TakeFirst
 import os
 import csv
 
