@@ -1,7 +1,6 @@
 from scrapy import Spider, Field
 from scrapy.http import Request
-from scrapy.loader import ItemLoader
-from ..items import WarrantItem
+from ..loaders import WarrantLoader
 from scrapy.loader.processors import TakeFirst
 import os
 import csv
@@ -70,20 +69,35 @@ class WarrantSpider(Spider):
         """
         From the details page of a symbol, get all information for that security
         """
-        rows = response.xpath(
+        warrantLoader = WarrantLoader(
+            selector = """
+            //div[@id='Detail_TCPH_TTCK']/div[@class='news-issuers']
             """
-            //div[@id='Detail_TCPH_TTCK']/div[@class='news-issuers']/div[@class='row']
-            """
-        )[:-1]
-        warrantItem = WarrantItem()
-        warrantLoader = ItemLoader(item=warrantItem, response=response)
-        for row in rows:
-            key = row.xpath("./div[1]/text()").get()
-            key = key.replace(":", "")
-            warrantItem.fields[key] = Field(output_processor=TakeFirst())
-
-            value = row.xpath("./div[2]/descendant-or-self::*[last()]/text()").get()
-            warrantLoader.add_value(key, value)
-        warrantItem.fields['Source URL'] = Field(output_processor=TakeFirst())
-        warrantLoader.add_value('Source URL', response.request.url)
+        )
+        xpaths = {
+            'issuer' : "./div[text()=\"Issuer's name:\"]/following-sibling::node()/a/text()",
+            'name' : "./div[text()='Name of warrant:']/following-sibling::node()/text()",
+            'code' : "./div[text()='Warrant code:']/following-sibling::node()/text()",
+            'isin' : "./div[text()='ISINs:']/following-sibling::node()/text()",
+            'underlying' : "./div[text()='Underlying securities:']/following-sibling::node()/text()",
+            'ul_issuer' : "./div[text()='Issuer of underlying securities:']/following-sibling::node()/text()",
+            'wrt_type' : "./div[text()='Warrant type:']/following-sibling::node()/text()",
+            'exer_style' : "./div[text()='Exercise style:']/following-sibling::node()/text()",
+            'settle_method' : "./div[text()='Settlement method:']/following-sibling::node()/text()",
+            'term' : "./div[text()='Term:']/following-sibling::node()/text()",
+            'due_date' : "./div[text()='Due date:']/following-sibling::node()/text()",
+            'conv_ratio' : "./div[text()='Conversion ratio:']/following-sibling::node()/text()",
+            'strike_price' : "./div[text()='Strike price:']/following-sibling::node()/text()",
+            'issue_price' : "./div[text()='Initial issuance price:']/following-sibling::node()/text()",
+            'market' : "./div[text()='Trading market:']/following-sibling::node()/text()",
+            'no_of_reg_cert' : "./div[text()='Number of Covered warrant Registration Certificate:']/following-sibling::node()/text()",
+            'no_of_init_reg' : "./div[text()='Number of initially registered covered warrants at VSD:']/following-sibling::node()/text()",
+            'val_of_init_reg' : "./div[text()='The value of initially registered covered warrant basing on the issuance price at VSD:']/following-sibling::node()/text()",
+            'qty_of_init_reg' : "./div[text()='Quantity of registered covered warrants at VSD:']/following-sibling::node()/text()",
+            'issuer_method' : "./div[text()='Issuer method:']/following-sibling::node()/text()",
+            'admin_place' : "./div[text()='Administration Place:']/following-sibling::node()/text()"
+        }
+        for key, value in xpaths:
+            warrantLoader.add_xpath(key, value)
+        warrantLoader.add_value('source_url', response.request.url)
         return warrantLoader.load_item()
