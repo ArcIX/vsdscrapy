@@ -54,7 +54,9 @@ class SecuritySpider(Spider):
         symbol = response.meta.get('symbol')
         href = response.xpath(
             """
-            //div[@id='divGlSearchIsuStocks']//li//b[text()='{}']/../@href
+            //div[@id='divGlSearchIsuStocks']//li//b[text()='{}'
+            and starts-with(following-sibling::text(), ':')
+            and not(preceding-sibling::text())]/../@href
             """.format(symbol)
         ).get()
         yield Request(self.base_url + href, dont_filter=True,
