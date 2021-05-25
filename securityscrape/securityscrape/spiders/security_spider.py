@@ -76,7 +76,7 @@ class SecuritySpider(Spider):
             """
         )[:-1]
         securityItem = SecurityItem()
-        securityLoader = SecurityLoader()
+        securityLoader = SecurityLoader(item=securityItem)
         for row in rows:
             key = row.xpath("./div[1]/text()").get()
             key = key.replace(":", "").replace("'", "").replace(" ", "_").lower()
