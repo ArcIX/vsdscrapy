@@ -8,6 +8,34 @@ class WarrantSpider(Spider):
     name = "warrant"
     base_url = "https://vsd.vn"
     search_url = base_url + "/en/search?text="
+    xpaths = {
+        'issuer' : "//div[text()=\"Issuer's name:\"]/following-sibling::node()/a/text()",
+        'name' : "//div[text()='Name of warrant:']/following-sibling::node()/text()",
+        'code' : "//div[text()='Warrant code:']/following-sibling::node()/text()",
+        'isin' : "//div[text()='ISINs:']/following-sibling::node()/text()",
+        'underlying' : "//div[text()='Underlying securities:']/following-sibling::node()/text()",
+        'ul_issuer' : "//div[text()='Issuer of underlying securities:']/following-sibling::node()/text()",
+        'wrt_type' : "//div[text()='Covered warrant type:']/following-sibling::node()/text()",
+        'exer_style' : "//div[text()='Excercise style:']/following-sibling::node()/text()",
+        'settle_method' : "//div[text()='Settlement method:']/following-sibling::node()/text()",
+        'term' : "//div[text()='Term:']/following-sibling::node()/text()",
+        'due_date' : "//div[text()='Due date:']/following-sibling::node()/text()",
+        'conv_ratio' : "//div[text()='Conversion ratio:']/following-sibling::node()/text()",
+        'strike_price' : "//div[text()='Strike price:']/following-sibling::node()/text()",
+        'issue_price' : "//div[text()='Initial issuance price:']/following-sibling::node()/text()",
+        'market' : "//div[text()='Trading market:']/following-sibling::node()/text()",
+        'no_of_reg_cert' : "//div[text()='Number of Covered warrant Registration Certificate:']/following-sibling::node()/text()",
+        'no_of_init_reg' : "//div[text()='Number of initially registered covered warrants at VSD:']/following-sibling::node()/text()",
+        'val_of_init_reg' : "//div[text()='The value of initially registered covered warrant basing on the issuance price at VSD:']/following-sibling::node()/text()",
+        'qty_of_init_reg' : "//div[text()='Quantity of registered covered warrants at VSD:']/following-sibling::node()/text()",
+        'issuer_method' : "//div[text()='Issuer method:']/following-sibling::node()/text()",
+        'admin_place' : "//div[text()='Administration Place:']/following-sibling::node()/text()"
+    }
+    # processors = {
+    #     'val_of_init_reg': {
+    #         'in': lambda vals: [val.replace(" ", "").replace(",", "").replace("VND", "") for val in vals],
+    #     },
+    # }
 
     def set_symbols(self, symbols):
         """
@@ -16,17 +44,30 @@ class WarrantSpider(Spider):
         """
         self.symbols = symbols
 
+    def set_processors(self, processors):
+        """
+        Accepts a dictionary containing the input and output processors per field.
+        Formed like below:
+        processors = {
+            'val_of_init_reg': {
+                'in': lambda vals: [val.replace(" ", "").replace(",", "").replace("VND", "") for val in vals],
+            },
+        }
+        """
+        self.processors = processors
+
     def start_requests(self):
         """
         On this page: https://vsd.vn/en/search?text=, make a request to search for each symbol
         """
-        input_file = os.path.join(os.path.dirname(__file__), "../../../input/inputsymbols.csv")
-        if not hasattr(self, 'symbols') and os.path.exists(input_file):
-            with open(input_file, newline="") as f:
-                reader = csv.reader(f)
-                self.symbols = [row[0] for row in reader]
-        else:
-            raise AttributeError("No symbols provided.")
+        # input_file = os.path.join(os.path.dirname(__file__), "../../../input/inputsymbols.csv")
+        # if not hasattr(self, 'symbols') and os.path.exists(input_file):
+        #     with open(input_file, newline="") as f:
+        #         reader = csv.reader(f)
+        #         self.symbols = [row[0] for row in reader]
+        # else:
+        #     raise AttributeError("No symbols provided.")
+        print(self.symbols)
         search_urls = [self.search_url + symbol for symbol in self.symbols]
         for index, url in enumerate(search_urls):
             yield Request(url, dont_filter=True, 
@@ -63,30 +104,13 @@ class WarrantSpider(Spider):
         From the details page of a symbol, get all information for that security
         """
         warrantLoader = WarrantLoader(response=response)
-        xpaths = {
-            'issuer' : "//div[text()=\"Issuer's name:\"]/following-sibling::node()/a/text()",
-            'name' : "//div[text()='Name of warrant:']/following-sibling::node()/text()",
-            'code' : "//div[text()='Warrant code:']/following-sibling::node()/text()",
-            'isin' : "//div[text()='ISINs:']/following-sibling::node()/text()",
-            'underlying' : "//div[text()='Underlying securities:']/following-sibling::node()/text()",
-            'ul_issuer' : "//div[text()='Issuer of underlying securities:']/following-sibling::node()/text()",
-            'wrt_type' : "//div[text()='Covered warrant type:']/following-sibling::node()/text()",
-            'exer_style' : "//div[text()='Excercise style:']/following-sibling::node()/text()",
-            'settle_method' : "//div[text()='Settlement method:']/following-sibling::node()/text()",
-            'term' : "//div[text()='Term:']/following-sibling::node()/text()",
-            'due_date' : "//div[text()='Due date:']/following-sibling::node()/text()",
-            'conv_ratio' : "//div[text()='Conversion ratio:']/following-sibling::node()/text()",
-            'strike_price' : "//div[text()='Strike price:']/following-sibling::node()/text()",
-            'issue_price' : "//div[text()='Initial issuance price:']/following-sibling::node()/text()",
-            'market' : "//div[text()='Trading market:']/following-sibling::node()/text()",
-            'no_of_reg_cert' : "//div[text()='Number of Covered warrant Registration Certificate:']/following-sibling::node()/text()",
-            'no_of_init_reg' : "//div[text()='Number of initially registered covered warrants at VSD:']/following-sibling::node()/text()",
-            'val_of_init_reg' : "//div[text()='The value of initially registered covered warrant basing on the issuance price at VSD:']/following-sibling::node()/text()",
-            'qty_of_init_reg' : "//div[text()='Quantity of registered covered warrants at VSD:']/following-sibling::node()/text()",
-            'issuer_method' : "//div[text()='Issuer method:']/following-sibling::node()/text()",
-            'admin_place' : "//div[text()='Administration Place:']/following-sibling::node()/text()"
-        }
-        for key in xpaths:
-            warrantLoader.add_xpath(key, xpaths[key])
+        if hasattr(self, 'processors'):
+            for key in self.processors:
+                if 'in' in self.processors[key]:
+                    setattr(warrantLoader, key + "_in", self.processors[key]['in'])
+                if 'out' in self.processors[key]:
+                    setattr(warrantLoader, key + "_out", self.processors[key]['out'])
+        for key in self.xpaths:
+            warrantLoader.add_xpath(key, self.xpaths[key])
         warrantLoader.add_value('source_url', response.request.url)
         return warrantLoader.load_item()

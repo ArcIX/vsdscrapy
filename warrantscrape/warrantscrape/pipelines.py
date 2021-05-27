@@ -6,8 +6,29 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
+from .items import WarrantItem
+import os
+import csv
 
+class WarrantPipeline:
 
-class WarrantscrapePipeline:
+    def open_spider(self, spider):
+        input_file = os.path.join(os.path.dirname(__file__), "../../input/inputsymbols.csv")
+        if os.path.exists(input_file):
+            with open(input_file, newline="") as f:
+                reader = csv.reader(f)
+                spider.set_symbols([row[0] for row in reader])
+        else:
+            raise AttributeError("No symbols provided.")
+
+        output_file = os.path.join(os.path.dirname(__file__), "../../output/outputsymbols.csv")
+        if os.path.exists(output_file):
+            self.file = open(output_file, 'w', newline="")
+            self.writer = csv.DictWriter(self.file, fieldnames=[field for field in WarrantItem.fields])
+            self.writer.writeheader()
+
     def process_item(self, item, spider):
-        return item
+        self.writer.writerow(ItemAdapter(item).asdict())
+
+    def close_spider(self, spider):
+        self.file.close()
