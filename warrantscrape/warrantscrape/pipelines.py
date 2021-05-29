@@ -22,13 +22,13 @@ class WarrantPipeline:
             raise AttributeError("No symbols provided.")
 
         output_file = os.path.join(os.path.dirname(__file__), "../../output/outputsymbols.csv")
-        if os.path.exists(output_file):
-            self.file = open(output_file, 'w', newline="")
-            self.writer = csv.DictWriter(self.file, fieldnames=[field for field in WarrantItem.fields])
-            self.writer.writeheader()
+        self.file = open(output_file, 'w', newline="")
+        self.writer = csv.DictWriter(self.file, fieldnames=[field for field in WarrantItem.fields])
+        self.writer.writeheader()
 
     def process_item(self, item, spider):
         self.writer.writerow(ItemAdapter(item).asdict())
+        return item
 
     def close_spider(self, spider):
         self.file.close()
