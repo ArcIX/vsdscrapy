@@ -22,19 +22,15 @@ class SecuritySpider(Spider):
         """
         On this page: https://vsd.vn/en/search?text=, make a request to search for each symbol
         """
-        # Sample symbols to scrape
-        # self.set_symbols([
-        #     "CROS2001",
-        #     "CROS2002"
-        # ])
-        input_file = os.path.join(os.path.dirname(__file__), "../../../input/inputsymbols.csv")
-        if not hasattr(self, 'symbols') and os.path.exists(input_file):
-            with open(input_file, newline="") as f:
-                reader = csv.reader(f)
-                self.symbols = [row[0] for row in reader]
-                print(self.symbols)
-        else:
-            raise AttributeError("No symbols provided.")
+        # input_file = os.path.join(os.path.dirname(__file__), "../../../input/inputsymbols.csv")
+        # if not hasattr(self, 'symbols') and os.path.exists(input_file):
+        #     with open(input_file, newline="") as f:
+        #         reader = csv.reader(f)
+        #         self.symbols = [row[0] for row in reader]
+        #         print(self.symbols)
+        # else:
+        #     raise AttributeError("No symbols provided.")
+        print(self.symbols)
         search_urls = [self.search_url + symbol for symbol in self.symbols]
         for index, url in enumerate(search_urls):
             yield Request(url, dont_filter=True, 
