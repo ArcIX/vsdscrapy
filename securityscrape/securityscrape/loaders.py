@@ -1,6 +1,6 @@
 from scrapy.loader import ItemLoader
 from .items import SecurityItem
-from scrapy.loader.processors import TakeFirst
+from itemloaders.processors import TakeFirst
 
 class SecurityLoader(ItemLoader):
     default_item_class = SecurityItem

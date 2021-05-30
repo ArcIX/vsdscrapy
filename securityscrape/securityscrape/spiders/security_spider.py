@@ -1,37 +1,40 @@
+from typing import Type
 from scrapy import Spider, Field
 from scrapy.http import Request
 from ..loaders import SecurityLoader
 from ..items import SecurityItem
-from scrapy.loader.processors import TakeFirst
-import os
-import csv
 
 class SecuritySpider(Spider):
     name = "security"
-    base_url = "https://vsd.vn"
-    search_url = base_url + "/en/search?text="
+    _base_url = "https://vsd.vn"
+    _search_url = _base_url + "/en/search?text="
 
-    def set_symbols(self, symbols):
-        """
-        Provide the symbols of the securities to be scraped.
-        DO NOT USE THIS IF SYMBOLS WILL BE PROVIDED VIA CSV
-        """
-        self.symbols = symbols
+    @property
+    def symbols(self):
+        return self._symbols
+
+    @symbols.setter
+    def symbols(self, symbols):
+        if not isinstance(symbols, list):
+            raise TypeError("Symbols are not in a list.")
+        self._symbols = symbols
+
+    @property
+    def processors(self):
+        return self._processors
+
+    @processors.setter
+    def processors(self, processors):
+        if not isinstance(processors, dict):
+            raise TypeError("Processors are expected as dictionary.")
+        self._processors = processors
 
     def start_requests(self):
         """
         On this page: https://vsd.vn/en/search?text=, make a request to search for each symbol
         """
-        # input_file = os.path.join(os.path.dirname(__file__), "../../../input/inputsymbols.csv")
-        # if not hasattr(self, 'symbols') and os.path.exists(input_file):
-        #     with open(input_file, newline="") as f:
-        #         reader = csv.reader(f)
-        #         self.symbols = [row[0] for row in reader]
-        #         print(self.symbols)
-        # else:
-        #     raise AttributeError("No symbols provided.")
         print(self.symbols)
-        search_urls = [self.search_url + symbol for symbol in self.symbols]
+        search_urls = [self._search_url + symbol for symbol in self.symbols]
         for index, url in enumerate(search_urls):
             yield Request(url, dont_filter=True, 
                 meta={
@@ -39,10 +42,10 @@ class SecuritySpider(Spider):
                     'dont_redirect': True,
                     'handle_httpstatus_list': [301, 302],
                 },
-                callback=self.get_detail_page_url
+                callback=self._get_detail_page_url
             )
 
-    def get_detail_page_url(self, response):
+    def _get_detail_page_url(self, response):
         """
         Upon searching the symbol, get the url to
         its details page and make a request to view it
@@ -55,7 +58,7 @@ class SecuritySpider(Spider):
             and not(preceding-sibling::text())]/../@href
             """.format(symbol)
         ).get()
-        yield Request(self.base_url + href, dont_filter=True,
+        yield Request(self._base_url + href, dont_filter=True,
             meta = {
                 'dont_redirect': True,
                 'handle_httpstatus_list': [301, 302]
@@ -75,10 +78,18 @@ class SecuritySpider(Spider):
         securityLoader = SecurityLoader(item=securityItem)
         for row in rows:
             key = row.xpath("./div[1]/text()").get()
-            key = key.replace(":", "").replace("'", "").replace(" ", "_").lower()
+            key = key.replace(":", "").replace("'", "").strip().replace(" ", "_").lower()
             securityItem.fields[key] = Field()
 
             value = row.xpath("./div[2]/descendant-or-self::*[last()]/text()").get()
+
+            if hasattr(self, '_processors'):
+                if key in self._processors:
+                    if 'in' in self._processors[key]:
+                        setattr(securityLoader, key + "_in", self.processors[key]['in'])
+                    if 'out' in self._processors[key]:
+                        setattr(securityLoader, key + "_out", self.processors[key]['out'])
+            
             securityLoader.add_value(key, value)
         securityLoader.add_value('source_url', response.request.url)
         return securityLoader.load_item()
