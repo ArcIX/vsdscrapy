@@ -15,7 +15,6 @@ class BondItem(Item):
     par_val = Field()
     market = Field()
     no_of_reg_cert = Field()
-    no_of_cur_reg = Field()
     val_of_cur_reg = Field()
     qty_of_cur_reg = Field()
     issuer_method = Field()

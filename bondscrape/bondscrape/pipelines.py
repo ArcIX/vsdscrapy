@@ -17,7 +17,7 @@ class BondPipeline:
         if os.path.exists(input_file):
             with open(input_file, newline="") as f:
                 reader = csv.reader(f)
-                spider.set_symbols([row[0] for row in reader])
+                spider.symbols = [row[0] for row in reader]
         else:
             raise AttributeError("No symbols provided.")
 
