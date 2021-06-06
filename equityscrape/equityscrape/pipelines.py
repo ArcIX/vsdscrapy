@@ -13,7 +13,7 @@ from .items import EquityItem
 class EquityPipeline:
 
     def open_spider(self, spider):
-        input_file = os.path.join(os.path.dirname(__file__), "../../input/inputsymbols.csv")
+        input_file = os.path.join(os.path.dirname(__file__), "../../input/equity_input.csv")
         if os.path.exists(input_file):
             with open(input_file, newline="") as f:
                 reader = csv.reader(f)
@@ -21,7 +21,7 @@ class EquityPipeline:
         else:
             raise AttributeError("No symbols provided.")
 
-        output_file = os.path.join(os.path.dirname(__file__), "../../output/outputsymbols.csv")
+        output_file = os.path.join(os.path.dirname(__file__), "../../output/equity_output.csv")
         self.file = open(output_file, 'w', newline="")
         self.writer = csv.DictWriter(self.file, fieldnames=[field for field in EquityItem.fields])
         self.writer.writeheader()

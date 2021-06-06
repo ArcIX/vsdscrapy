@@ -14,7 +14,7 @@ class SecurityPipeline:
     
     def open_spider(self, spider):
         # Get symbols from csv file in input folder
-        input_file = os.path.join(os.path.dirname(__file__), "../../input/inputsymbols.csv")
+        input_file = os.path.join(os.path.dirname(__file__), "../../input/security_input.csv")
         if os.path.exists(input_file):
             with open(input_file, newline="") as f:
                 reader = csv.reader(f)
@@ -36,7 +36,7 @@ class SecurityPipeline:
         # }
 
         # Open json file in output folder; Create if not existing
-        output_file = os.path.join(os.path.dirname(__file__), "../../output/outputsymbols.json")
+        output_file = os.path.join(os.path.dirname(__file__), "../../output/security_output.json")
         self.file = open(output_file, 'w')
 
     def process_item(self, item, spider):

@@ -13,7 +13,7 @@ from .items import BondItem
 class BondPipeline:
     
     def open_spider(self, spider):
-        input_file = os.path.join(os.path.dirname(__file__), "../../input/inputsymbols.csv")
+        input_file = os.path.join(os.path.dirname(__file__), "../../input/bond_input.csv")
         if os.path.exists(input_file):
             with open(input_file, newline="") as f:
                 reader = csv.reader(f)
@@ -21,7 +21,7 @@ class BondPipeline:
         else:
             raise AttributeError("No symbols provided.")
 
-        output_file = os.path.join(os.path.dirname(__file__), "../../output/outputsymbols.csv")
+        output_file = os.path.join(os.path.dirname(__file__), "../../output/bond_output.csv")
         self.file = open(output_file, 'w', newline="")
         self.writer = csv.DictWriter(self.file, fieldnames=[field for field in BondItem.fields])
         self.writer.writeheader()
