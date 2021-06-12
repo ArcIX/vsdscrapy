@@ -6,26 +6,26 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
-from .items import WarrantItem
 import os
 import csv
+from .items import EquityItem
 
-class WarrantPipeline:
+class EquityPipeline:
 
     def open_spider(self, spider):
-        input_file = os.path.join(os.path.dirname(__file__), "../../input/warrant_input.csv")
+        input_file = os.path.join(os.path.dirname(__file__), "../../input/equity_input.csv")
         if os.path.exists(input_file):
             with open(input_file, newline="") as f:
                 reader = csv.reader(f)
-                spider.symbols = [row[0] for row in reader]
+                spider.symbols= [row[0] for row in reader]
         else:
             raise AttributeError("No symbols provided.")
 
-        output_file = os.path.join(os.path.dirname(__file__), "../../output/warrant_output.csv")
+        output_file = os.path.join(os.path.dirname(__file__), "../../output/equity_output.csv")
         self.file = open(output_file, 'w', newline="")
-        self.writer = csv.DictWriter(self.file, fieldnames=[field for field in WarrantItem.fields])
+        self.writer = csv.DictWriter(self.file, fieldnames=[field for field in EquityItem.fields])
         self.writer.writeheader()
-
+        
     def process_item(self, item, spider):
         self.writer.writerow(ItemAdapter(item).asdict())
         return item

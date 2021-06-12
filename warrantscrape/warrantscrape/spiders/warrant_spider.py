@@ -1,13 +1,11 @@
-from scrapy import Spider
-from scrapy.http import Request
-from ..loaders import WarrantLoader
-import os
-import csv
+import sys
+sys.path.append("..")
 
-class WarrantSpider(Spider):
+from securityscrape.securityscrape.spiders.security_spider import SecuritySpider
+from ..loaders import WarrantLoader
+
+class WarrantSpider(SecuritySpider):
     name = "warrant"
-    base_url = "https://vsd.vn"
-    search_url = base_url + "/en/search?text="
     xpaths = {
         'issuer' : "//div[text()=\"Issuer's name:\"]/following-sibling::node()/a/text()",
         'name' : "//div[text()='Name of warrant:']/following-sibling::node()/text()",
@@ -31,74 +29,7 @@ class WarrantSpider(Spider):
         'issuer_method' : "//div[text()='Issuer method:']/following-sibling::node()/text()",
         'admin_place' : "//div[text()='Administration Place:']/following-sibling::node()/text()"
     }
-    # processors = {
-    #     'val_of_init_reg': {
-    #         'in': lambda vals: [val.replace(" ", "").replace(",", "").replace("VND", "") for val in vals],
-    #     },
-    # }
-
-    def set_symbols(self, symbols):
-        """
-        Provide the symbols of the securities to be scraped.
-        DO NOT USE THIS IF SYMBOLS WILL BE PROVIDED VIA CSV
-        """
-        self.symbols = symbols
-
-    def set_processors(self, processors):
-        """
-        Accepts a dictionary containing the input and output processors per field.
-        Formed like below:
-        processors = {
-            'val_of_init_reg': {
-                'in': lambda vals: [val.replace(" ", "").replace(",", "").replace("VND", "") for val in vals],
-            },
-        }
-        """
-        self.processors = processors
-
-    def start_requests(self):
-        """
-        On this page: https://vsd.vn/en/search?text=, make a request to search for each symbol
-        """
-        # input_file = os.path.join(os.path.dirname(__file__), "../../../input/inputsymbols.csv")
-        # if not hasattr(self, 'symbols') and os.path.exists(input_file):
-        #     with open(input_file, newline="") as f:
-        #         reader = csv.reader(f)
-        #         self.symbols = [row[0] for row in reader]
-        # else:
-        #     raise AttributeError("No symbols provided.")
-        print(self.symbols)
-        search_urls = [self.search_url + symbol for symbol in self.symbols]
-        for index, url in enumerate(search_urls):
-            yield Request(url, dont_filter=True, 
-                meta={
-                    'symbol': self.symbols[index],
-                    'dont_redirect': True,
-                    'handle_httpstatus_list': [301, 302],
-                },
-                callback=self.get_detail_page_url
-            )
-
-    def get_detail_page_url(self, response):
-        """
-        Upon searching the symbol, get the url to
-        its details page and make a request to view it
-        """
-        symbol = response.meta.get('symbol')
-        href = response.xpath(
-            """
-            //div[@id='divGlSearchIsuStocks']//li//b[text()='{}'
-            and starts-with(following-sibling::text(), ':')
-            and not(preceding-sibling::text())]/../@href
-            """.format(symbol)
-        ).get()
-        yield Request(self.base_url + href, dont_filter=True,
-            meta = {
-                'dont_redirect': True,
-                'handle_httpstatus_list': [301, 302]
-            }
-        )
-
+    
     def parse(self, response):
         """
         From the details page of a symbol, get all information for that security
